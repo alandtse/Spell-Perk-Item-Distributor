@@ -657,7 +657,7 @@ namespace Distribute
 			static void add_item(RE::Actor* a_actor, RE::TESBoundObject* a_item, std::uint32_t a_itemCount, bool a_silent, std::uint32_t a_stackID, RE::BSScript::Internal::VirtualMachine* a_vm)
 			{
 				using func_t = decltype(&detail::add_item);
-				REL::Relocation<func_t> func{ REL::ID(55945) };
+				REL::Relocation<func_t> func{ REL::Offset(0x9CC310) };
 				return func(a_actor, a_item, a_itemCount, a_silent, a_stackID, a_vm);
 			}
 		};

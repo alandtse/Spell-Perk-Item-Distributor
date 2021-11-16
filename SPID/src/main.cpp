@@ -6,7 +6,7 @@ void MessageHandler(SKSE::MessagingInterface::Message* a_message)
 		logger::info("{:*^30}", "LOOKUP");
 
 		Cache::EditorID::GetSingleton()->FillMap();
-		
+
 		if (Lookup::GetForms()) {
 			Distribute::ApplyToNPCs();
 			Distribute::LeveledActor::Install();
@@ -32,9 +32,9 @@ protected:
 		if (a_event && a_event->eventName == "KID_KeywordDistributionDone") {
 			logger::info("{:*^30}", "LOOKUP");
 			logger::info("Starting distribution since KID is done...");
-			
+
 			Cache::EditorID::GetSingleton()->FillMap();
-			
+
 			if (Lookup::GetForms()) {
 				Distribute::ApplyToNPCs();
 				Distribute::LeveledActor::Install();
@@ -59,7 +59,16 @@ private:
 	DistributionManager& operator=(DistributionManager&&) = delete;
 };
 
-extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
+extern "C" __declspec(dllexport) constexpr auto SKSEPlugin_Version = []() {
+	SKSE::PluginVersionData v{};
+	v.pluginVersion = 5;
+	v.PluginName("powerofthree's Spell Perk Item Distributor"sv);
+	v.AuthorName("powerofthree"sv);
+	v.CompatibleVersions({ SKSE::RUNTIME_1_6_318 });
+	return v;
+}();
+
+extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
 	auto path = logger::log_directory();
 	if (!path) {
@@ -79,26 +88,6 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a
 
 	logger::info(FMT_STRING("{} v{}"), Version::PROJECT, Version::NAME);
 
-	a_info->infoVersion = SKSE::PluginInfo::kVersion;
-	a_info->name = "powerofthree's Spell Perk Distributor";
-	a_info->version = Version::MAJOR;
-
-	if (a_skse->IsEditor()) {
-		logger::critical("Loaded in editor, marking as incompatible"sv);
-		return false;
-	}
-
-	const auto ver = a_skse->RuntimeVersion();
-	if (ver < SKSE::RUNTIME_1_5_39) {
-		logger::critical(FMT_STRING("Unsupported runtime version {}"), ver.string());
-		return false;
-	}
-
-	return true;
-}
-
-extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
-{
 	logger::info("loaded plugin");
 
 	SKSE::Init(a_skse);
