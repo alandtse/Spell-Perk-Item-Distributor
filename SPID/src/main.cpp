@@ -61,14 +61,14 @@ private:
 
 extern "C" __declspec(dllexport) constexpr auto SKSEPlugin_Version = []() {
 	SKSE::PluginVersionData v{};
-	v.pluginVersion = 5;
+	v.pluginVersion = Version::MAJOR;
 	v.PluginName("powerofthree's Spell Perk Item Distributor"sv);
 	v.AuthorName("powerofthree"sv);
 	v.CompatibleVersions({ SKSE::RUNTIME_1_6_318 });
 	return v;
 }();
 
-extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
+bool InitLogger()
 {
 	auto path = logger::log_directory();
 	if (!path) {
@@ -87,6 +87,15 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	spdlog::set_pattern("[%H:%M:%S:%e] %v"s);
 
 	logger::info(FMT_STRING("{} v{}"), Version::PROJECT, Version::NAME);
+
+	return true;
+}
+
+extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
+{
+	if (!InitLogger()) {
+		return false;
+	}
 
 	logger::info("loaded plugin");
 
