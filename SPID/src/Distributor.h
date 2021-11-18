@@ -296,7 +296,6 @@ namespace Lookup
 	void get_forms(RE::TESDataHandler* a_dataHandler, const std::string& a_type, const INIDataVec& a_INIDataVec, FormDataVec<Form>& a_formDataVec)
 	{
 		if (a_INIDataVec.empty()) {
-			logger::info("	{} empty", a_type);
 			return;
 		}
 
