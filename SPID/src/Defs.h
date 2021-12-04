@@ -18,8 +18,8 @@ namespace RECORD
 		kTotal
 	};
 
-	inline constexpr std::array add { "Spell", "Perk", "Item", "Shout", "LevSpell", "Package", "Outfit", "Keyword", "DeathItem", "Faction" };
-	inline constexpr std::array remove { "-Spell", "-Perk", "-Item", "-Shout", "-LevSpell", "-Package", "-Outfit", "-Keyword", "-DeathItem", "-Faction" };
+	inline constexpr std::array add{ "Spell", "Perk", "Item", "Shout", "LevSpell", "Package", "Outfit", "Keyword", "DeathItem", "Faction" };
+	inline constexpr std::array remove{ "-Spell", "-Perk", "-Item", "-Shout", "-LevSpell", "-Package", "-Outfit", "-Keyword", "-DeathItem", "-Faction" };
 }
 
 namespace TRAITS
@@ -81,10 +81,11 @@ using SkillLevel = std::pair<
 	std::pair<std::uint8_t, std::uint8_t>>;
 using ItemCount = std::int32_t;
 using Traits = std::tuple<
-    std::optional<RE::SEX>,
+	std::optional<RE::SEX>,
 	std::optional<bool>,
 	std::optional<bool>>;
 using Chance = float;
+using Path = std::string;
 
 using INIData = std::tuple<
 	std::variant<FormIDPair, std::string>,
@@ -93,7 +94,8 @@ using INIData = std::tuple<
 	std::pair<ActorLevel, std::vector<SkillLevel>>,
 	Traits,
 	ItemCount,
-	Chance>;
+	Chance,
+	Path>;
 using INIDataVec = std::vector<INIData>;
 
 using NPCCount = std::uint32_t;

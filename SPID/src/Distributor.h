@@ -66,10 +66,10 @@ namespace INI
 		}
 	}
 
-	inline std::pair<INIData, std::optional<std::string>> parse_ini(const std::string& a_value)
+	inline std::pair<INIData, std::optional<std::string>> parse_ini(const std::string& a_value, const std::string& a_path)
 	{
 		INIData data;
-		auto& [formIDPair_ini, strings_ini, filterIDs_ini, level_ini, traits_ini, itemCount_ini, chance_ini] = data;
+		auto& [formIDPair_ini, strings_ini, filterIDs_ini, level_ini, traits_ini, itemCount_ini, chance_ini, path] = data;
 
 		auto sanitized_value = detail::sanitize(a_value);
 		const auto sections = string::split(sanitized_value, "|");
@@ -233,6 +233,7 @@ namespace INI
 		} catch (...) {
 		}
 
+		path = a_path;
 		if (sanitized_value != a_value) {
 			return std::make_pair(data, sanitized_value);
 		}
@@ -246,17 +247,17 @@ namespace Lookup
 {
 	namespace detail
 	{
-		inline void formID_to_form(RE::TESDataHandler* a_dataHandler, const FormIDPairVec& a_formIDVec, FormVec& a_formVec)
+		inline void formID_to_form(RE::TESDataHandler* a_dataHandler, const FormIDPairVec& a_formIDVec, FormVec& a_formVec, std::string a_path)
 		{
 			if (!a_formIDVec.empty()) {
 				for (auto& [formID, modName] : a_formIDVec) {
 					if (modName && !formID) {
 						if (INI::detail::is_mod_name(*modName)) {
 							if (const RE::TESFile* filterMod = a_dataHandler->LookupModByName(*modName); filterMod) {
-								logger::info("			Filter ({}) INFO - mod found", filterMod->fileName);
+								logger::info("{}			Filter ({}) INFO - mod found", a_path, filterMod->fileName);
 								a_formVec.push_back(filterMod);
 							} else {
-								logger::error("			Filter ({}) SKIP - mod cannot be found", *modName);
+								logger::error("{}			Filter ({}) SKIP - mod cannot be found", a_path, *modName);
 							}
 						} else {
 							auto filterForm = RE::TESForm::LookupByEditorID(*modName);
@@ -265,10 +266,10 @@ namespace Lookup
 								if (const auto type = Cache::FormType::GetWhitelistFormString(formType); !type.empty()) {
 									a_formVec.push_back(filterForm);
 								} else {
-									logger::error("			Filter ({}) SKIP - invalid formtype ({})", *modName, Cache::FormType::GetBlacklistFormString(formType));
+									logger::error("{}			Filter ({}) SKIP - invalid formtype ({})", a_path, *modName, Cache::FormType::GetBlacklistFormString(formType));
 								}
 							} else {
-								logger::error("			Filter ({}) SKIP - form doesn't exist", *modName);
+								logger::error("{}			Filter ({}) SKIP - form doesn't exist", a_path, *modName);
 							}
 						}
 					} else if (formID) {
@@ -280,10 +281,10 @@ namespace Lookup
 							if (const auto type = Cache::FormType::GetWhitelistFormString(formType); !type.empty()) {
 								a_formVec.push_back(filterForm);
 							} else {
-								logger::error("			Filter [0x{:X}] ({}) SKIP - invalid formtype ({})", *formID, modName.value_or(""), Cache::FormType::GetBlacklistFormString(formType));
+								logger::error("{}			Filter [0x{:X}] ({}) SKIP - invalid formtype ({})", a_path, *formID, modName.value_or(""), Cache::FormType::GetBlacklistFormString(formType));
 							}
 						} else {
-							logger::error("			Filter [0x{:X}] ({}) SKIP - form doesn't exist", *formID, modName.value_or(""));
+							logger::error("{}			Filter [0x{:X}] ({}) SKIP - form doesn't exist", a_path, *formID, modName.value_or(""));
 						}
 					}
 				}
@@ -300,7 +301,7 @@ namespace Lookup
 
 		logger::info("	Starting {} lookup", a_type);
 
-		for (auto& [formIDPair_ini, strings_ini, filterIDs_ini, level_ini, gender_ini, itemCount_ini, chance_ini] : a_INIDataVec) {
+		for (auto& [formIDPair_ini, strings_ini, filterIDs_ini, level_ini, gender_ini, itemCount_ini, chance_ini, path] : a_INIDataVec) {
 			Form* form = nullptr;
 
 			if (std::holds_alternative<FormIDPair>(formIDPair_ini)) {
@@ -323,7 +324,7 @@ namespace Lookup
 						}
 					}
 					if (!form) {
-						logger::error("		{} [0x{:X}] ({}) FAIL - formID doesn't exist", a_type, *formID, modName.value_or(""));
+						logger::error("{}		{} [0x{:X}] ({}) FAIL - formID doesn't exist", path, a_type, *formID, modName.value_or(""));
 					}
 				}
 			} else if constexpr (std::is_same_v<Form, RE::BGSKeyword>) {
@@ -341,24 +342,24 @@ namespace Lookup
 					if (result != keywordArray.end()) {
 						if (const auto keyword = *result; keyword) {
 							if (!keyword->IsDynamicForm()) {
-								logger::info("		{} [0x{:X}] INFO - using existing keyword", keywordName, keyword->GetFormID());
+								logger::info("{}		{} [0x{:X}] INFO - using existing keyword", path, keywordName, keyword->GetFormID());
 							}
 							form = keyword;
 						} else {
-							logger::critical("		{} FAIL - couldn't get existing keyword", keywordName);
+							logger::critical("{}		{} FAIL - couldn't get existing keyword", path, keywordName);
 							continue;
 						}
 					} else {
 						const auto factory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSKeyword>();
 						if (auto keyword = factory ? factory->Create() : nullptr; keyword) {
 							keyword->formEditorID = keywordName;
-							logger::info("		{} [0x{:X}] INFO - creating keyword", keywordName, keyword->GetFormID());
+							logger::info("{}		{} [0x{:X}] INFO - creating keyword", path, keywordName, keyword->GetFormID());
 
 							keywordArray.push_back(keyword);
 
 							form = keyword;
 						} else {
-							logger::critical("		{} FAIL - couldn't create keyword", keywordName);
+							logger::critical("{}		{} FAIL - couldn't create keyword", path, keywordName);
 						}
 					}
 				}
@@ -372,7 +373,7 @@ namespace Lookup
 						}
 					}
 					if (!form) {
-						logger::error("		{} {} FAIL - editorID doesn't exist", a_type, editorID);
+						logger::error("{}		{} {} FAIL - editorID doesn't exist", path, a_type, editorID);
 					}
 				}
 			}
@@ -383,7 +384,7 @@ namespace Lookup
 
 			std::array<FormVec, 3> filterForms;
 			for (std::uint32_t i = 0; i < 3; i++) {
-				detail::formID_to_form(a_dataHandler, filterIDs_ini[i], filterForms[i]);
+				detail::formID_to_form(a_dataHandler, filterIDs_ini[i], filterForms[i], path);
 			}
 
 			FormCountPair<Form> formCountPair = { form, itemCount_ini };

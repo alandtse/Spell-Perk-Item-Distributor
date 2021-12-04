@@ -56,10 +56,10 @@ bool INI::Read()
 			std::multimap<CSimpleIniA::Entry, std::pair<std::string, std::string>, CSimpleIniA::Entry::LoadOrder> oldFormatMap;
 
 			for (auto& [key, entry] : *values) {
-				auto [data, sanitized_str] = parse_ini(entry);
-				
+				auto [data, sanitized_str] = parse_ini(entry, path);
+
 				INIs[key.pItem].emplace_back(data);
-				
+
 				if (sanitized_str) {
 					oldFormatMap.emplace(key, std::make_pair(entry, *sanitized_str));
 				}
@@ -67,13 +67,13 @@ bool INI::Read()
 
 			if (!oldFormatMap.empty()) {
 				logger::info("		sanitizing {} entries", oldFormatMap.size());
-				
+
 				for (auto& [key, entry] : oldFormatMap) {
 					auto& [original, sanitized] = entry;
 					ini.DeleteValue("", key.pItem, original.c_str());
 					ini.SetValue("", key.pItem, sanitized.c_str(), key.pComment, false);
 				}
-				
+
 				ini.SaveFile(path.c_str());
 			}
 		}
