@@ -292,7 +292,14 @@ namespace Distribute::LeveledActor
 			return;
 		}
 
-		stl::write_vfunc<RE::Character, 0x084, SetObjectReference>();
+		stl::write_vfunc<RE::Character,
+#ifndef SKYRIMVR
+			0x084
+#else
+			0x085
+#endif
+			,
+			SetObjectReference>();
 		logger::info("	Hooked leveled actor init");
 	}
 }
