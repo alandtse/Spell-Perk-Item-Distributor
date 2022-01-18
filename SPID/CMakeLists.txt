@@ -128,6 +128,7 @@ find_package(frozen REQUIRED CONFIG)
 find_package(spdlog REQUIRED CONFIG)
 
 find_path(SIMPLEINI_INCLUDE_DIRS "ConvertUTF.c")
+find_package(nlohmann_json CONFIG REQUIRED)
 
 # ---- Add source files ----
 
@@ -187,6 +188,7 @@ target_link_libraries(
 		Boost::regex
 		${CommonLibName}::${CommonLibName}
 		frozen::frozen
+		nlohmann_json nlohmann_json::nlohmann_json
 		spdlog::spdlog
 )
 
