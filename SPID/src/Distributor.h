@@ -27,7 +27,7 @@ namespace INI
 				return std::make_pair(
 					string::lexical_cast<RE::FormID>(splitID.at(kFormID), true),
 					splitID.at(kESP));
-			} else if (is_mod_name(a_str) || !string::is_only_hex(a_str)) {
+			} else if (is_mod_name(a_str) || !(string::is_only_hex(a_str) || regex_match(a_str,boost::regex(R"([0-9a-f]+)",static_cast<int>(boost::regex_constants::optimize) | static_cast<int>(boost::regex::icase))))) {
 				return std::make_pair(
 					std::nullopt,
 					a_str);
