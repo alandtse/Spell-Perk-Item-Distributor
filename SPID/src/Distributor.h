@@ -42,10 +42,19 @@ namespace INI
 		{
 			auto newValue = a_value;
 
-			//formID hypen
+			//convert formID hypen at beginning
 			if (newValue.find('~') == std::string::npos) {
 				string::replace_first_instance(newValue, " - ", "~");
 			}
+
+			// convert formID hyphens thoughout
+			//0x12B063 - Apocalypse - Magic of Skyrim.esp -> 0x12B063 ~ Apocalypse - Magic of Skyrim.esp
+			static const boost::regex re_hyphen_no_tilde(R"((0x[0-9a-f]+ *)-([^~|,]+.es[plm]))", static_cast<int>(boost::regex_constants::optimize)|static_cast<int>(boost::regex::icase));
+			newValue = regex_replace(newValue, re_hyphen_no_tilde, "$1~$2");
+
+			//strip spaces between " ~ "
+			static const boost::regex re_tilde(R"(\s*~\s*)", boost::regex_constants::optimize);
+			newValue = regex_replace(newValue, re_tilde, "~");
 
 			//strip spaces between " | "
 			static const boost::regex re_bar(R"(\s*\|\s*)", boost::regex_constants::optimize);
