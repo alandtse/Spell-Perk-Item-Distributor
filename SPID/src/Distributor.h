@@ -52,6 +52,16 @@ namespace INI
 			static const boost::regex re_hyphen_no_tilde(R"((0x[0-9a-f]+ *)-([^~|,]+.es[plm]))", static_cast<int>(boost::regex_constants::optimize)|static_cast<int>(boost::regex::icase));
 			newValue = regex_replace(newValue, re_hyphen_no_tilde, "$1~$2");
 
+#ifdef SKYRIMVR
+			// swap dawnguard and dragonborn forms
+			// we do this during sanitize instead of in get_formID to squelch log errors
+			// VR apparently does not load masters in order so the lookup fails
+			static const boost::regex re_dawnguard(R"((0x0*2)([0-9a-f]{6}))", static_cast<int>(boost::regex_constants::optimize) | static_cast<int>(boost::regex::icase));
+			newValue = regex_replace(newValue, re_dawnguard, "0x$2~Dawnguard.esm");
+
+			static const boost::regex re_dragonborn(R"((0x0*4)([0-9a-f]{6}))", static_cast<int>(boost::regex_constants::optimize) | static_cast<int>(boost::regex::icase));
+			newValue = regex_replace(newValue, re_dragonborn, "0x$2~Dragonborn.esm");
+#endif
 			//strip spaces between " ~ "
 			static const boost::regex re_tilde(R"(\s*~\s*)", boost::regex_constants::optimize);
 			newValue = regex_replace(newValue, re_tilde, "~");
