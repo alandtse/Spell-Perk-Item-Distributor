@@ -247,48 +247,50 @@ namespace Lookup
 {
 	namespace detail
 	{
-		inline void formID_to_form(RE::TESDataHandler* a_dataHandler, const FormIDPairVec& a_formIDVec, FormVec& a_formVec, std::string a_path)
+		inline bool formID_to_form(RE::TESDataHandler* a_dataHandler, const FormIDPairVec& a_formIDVec, FormVec& a_formVec, std::string a_path)
 		{
-			if (!a_formIDVec.empty()) {
-				for (auto& [formID, modName] : a_formIDVec) {
-					if (modName && !formID) {
-						if (INI::detail::is_mod_name(*modName)) {
-							if (const RE::TESFile* filterMod = a_dataHandler->LookupModByName(*modName); filterMod) {
-								logger::info("{}			Filter ({}) INFO - mod found", a_path, filterMod->fileName);
-								a_formVec.push_back(filterMod);
-							} else {
-								logger::error("{}			Filter ({}) SKIP - mod cannot be found", a_path, *modName);
-							}
+			if (a_formIDVec.empty()) {
+				return true;
+			}
+			for (auto& [formID, modName] : a_formIDVec) {
+				if (modName && !formID) {
+					if (INI::detail::is_mod_name(*modName)) {
+						if (const RE::TESFile* filterMod = a_dataHandler->LookupModByName(*modName); filterMod) {
+							logger::info("{}			Filter ({}) INFO - mod found", a_path, filterMod->fileName);
+							a_formVec.push_back(filterMod);
 						} else {
-							auto filterForm = RE::TESForm::LookupByEditorID(*modName);
-							if (filterForm) {
-								const auto formType = filterForm->GetFormType();
-								if (const auto type = Cache::FormType::GetWhitelistFormString(formType); !type.empty()) {
-									a_formVec.push_back(filterForm);
-								} else {
-									logger::error("{}			Filter ({}) SKIP - invalid formtype ({})", a_path, *modName, Cache::FormType::GetBlacklistFormString(formType));
-								}
-							} else {
-								logger::error("{}			Filter ({}) SKIP - form doesn't exist", a_path, *modName);
-							}
+							logger::error("{}			Filter ({}) SKIP - mod cannot be found", a_path, *modName);
 						}
-					} else if (formID) {
-						auto filterForm = modName ?
-                                              a_dataHandler->LookupForm(*formID, *modName) :
-                                              RE::TESForm::LookupByID(*formID);
+					} else {
+						auto filterForm = RE::TESForm::LookupByEditorID(*modName);
 						if (filterForm) {
 							const auto formType = filterForm->GetFormType();
 							if (const auto type = Cache::FormType::GetWhitelistFormString(formType); !type.empty()) {
 								a_formVec.push_back(filterForm);
 							} else {
-								logger::error("{}			Filter [0x{:X}] ({}) SKIP - invalid formtype ({})", a_path, *formID, modName.value_or(""), Cache::FormType::GetBlacklistFormString(formType));
+								logger::error("{}			Filter ({}) SKIP - invalid formtype ({})", a_path, *modName, Cache::FormType::GetBlacklistFormString(formType));
 							}
 						} else {
-							logger::error("{}			Filter [0x{:X}] ({}) SKIP - form doesn't exist", a_path, *formID, modName.value_or(""));
+							logger::error("{}			Filter ({}) SKIP - form doesn't exist", a_path, *modName);
 						}
+					}
+				} else if (formID) {
+					auto filterForm = modName ?
+                                          a_dataHandler->LookupForm(*formID, *modName) :
+                                          RE::TESForm::LookupByID(*formID);
+					if (filterForm) {
+						const auto formType = filterForm->GetFormType();
+						if (const auto type = Cache::FormType::GetWhitelistFormString(formType); !type.empty()) {
+							a_formVec.push_back(filterForm);
+						} else {
+							logger::error("{}			Filter [0x{:X}] ({}) SKIP - invalid formtype ({})", a_path, *formID, modName.value_or(""), Cache::FormType::GetBlacklistFormString(formType));
+						}
+					} else {
+						logger::error("{}			Filter [0x{:X}] ({}) SKIP - form doesn't exist", a_path, *formID, modName.value_or(""));
 					}
 				}
 			}
+			return !a_formVec.empty();
 		}
 	}
 
@@ -382,9 +384,18 @@ namespace Lookup
 				continue;
 			}
 
+			bool invalidEntry = false;
+
 			std::array<FormVec, 3> filterForms;
 			for (std::uint32_t i = 0; i < 3; i++) {
-				detail::formID_to_form(a_dataHandler, filterIDs_ini[i], filterForms[i], path);
+				if (!detail::formID_to_form(a_dataHandler, filterIDs_ini[i], filterForms[i], path)) {
+					invalidEntry = true;
+					break;
+				}
+			}
+
+			if (invalidEntry) {
+				continue;
 			}
 
 			FormCountPair<Form> formCountPair = { form, itemCount_ini };

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 set(NAME "po3_SpellPerkItemDistributor")
-set(VERSION 5.1.0)
+set(VERSION 5.2.0)
 set(VR_VERSION 1)
 
 # ---- Options ----
@@ -246,7 +246,7 @@ if (MSVC)
 			"$<$<CONFIG:DEBUG>:/INCREMENTAL;/OPT:NOREF;/OPT:NOICF>"
 			"$<$<CONFIG:RELEASE>:/INCREMENTAL:NO;/OPT:REF;/OPT:ICF;/DEBUG:FULL>"
 	)
-	
+
 endif ()
 
 # ---- Post build ----
