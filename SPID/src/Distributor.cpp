@@ -292,7 +292,7 @@ namespace Distribute::LeveledActor
 			return;
 		}
 
-		::stl::write_vfunc<RE::Character,
+		stl::write_vfunc<RE::Character,
 #ifndef SKYRIMVR
 			0x084
 #else
