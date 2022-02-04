@@ -37,17 +37,18 @@ if(BUILD_SKYRIMVR)
 	set_from_environment(SkyrimVRPath)
 	set(SkyrimPath ${SkyrimVRPath})
 	set(SkyrimVersion "Skyrim VR")
-	set(VERSION "${VERSION}.${VR_VERSION}")
+	set(VERSION ${VERSION}.${VR_VERSION})
 else()
 	set(CommonLibName "CommonLibSSE")
 	set_from_environment(Skyrim64Path)
 	set(SkyrimPath ${Skyrim64Path})
 	set(SkyrimVersion "Skyrim SSE")
+	set(VERSION ${VERSION}.0)
 endif()
 find_commonlib_path()
 message(
 	STATUS
-	"Building for ${SkyrimVersion} at ${SkyrimPath} with ${CommonLibName} at ${CommonLibPath}."
+	"Building ${NAME} ${VERSION} for ${SkyrimVersion} at ${SkyrimPath} with ${CommonLibName} at ${CommonLibPath}."
 )
 
 if (DEFINED VCPKG_ROOT)
