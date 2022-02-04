@@ -1,5 +1,5 @@
 #include "Distributor.h"
-
+#include "MergeMapper.h"
 void MessageHandler(SKSE::MessagingInterface::Message* a_message)
 {
 	if (a_message->type == SKSE::MessagingInterface::kDataLoaded) {
@@ -108,6 +108,9 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	logger::info("loaded plugin");
 
 	SKSE::Init(a_skse);
+
+	logger::info("{:*^30}", "MERGES");
+	MergeMapper::GetMerges();
 
 	const auto kidHandle = GetModuleHandle(L"po3_KeywordItemDistributor");
 	logger::info("Keyword Item Distributor (KID) detected : {}", kidHandle != nullptr);

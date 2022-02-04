@@ -5,6 +5,7 @@
     "boost-stl-interfaces",
     "boost-regex",
     "frozen",
+    "nlohmann-json",
     "robin-hood-hashing",
     "rsm-binary-io",
     "simpleini",

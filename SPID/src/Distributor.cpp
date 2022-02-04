@@ -84,7 +84,6 @@ bool INI::Read()
 
 bool Lookup::GetForms()
 {
-	GetMerges();
 	if (const auto dataHandler = RE::TESDataHandler::GetSingleton(); dataHandler) {
 		get_forms(dataHandler, "Spell", INIs["Spell"], spells);
 		get_forms(dataHandler, "Perk", INIs["Perk"], perks);
@@ -115,44 +114,6 @@ bool Lookup::GetForms()
 		logger::info("	Adding {}/{} faction(s)", factions.size(), INIs["Faction"].size());
 	}
 	return result;
-}
-
-bool Lookup::GetMerges()
-{
-	using json = nlohmann::json;
-	logger::info("Searching for merges within the Data folder");
-	auto constexpr folder = R"(Data\)";
-	json json_data;
-	for (const auto& entry : std::filesystem::directory_iterator(folder)) {
-		// zMerge folders have name "merge - 018auri"
-		auto constexpr mergePrefix = R"(Data\merge - )";
-		if (entry.exists() && entry.is_directory() && entry.path().string().starts_with(mergePrefix)) {
-			const auto path = entry.path().string();
-
-			auto file = path + "/map.json";
-			auto merged = path.substr(13) + ".esp";
-			try {
-				std::ifstream json_file(file);
-				json_file >> json_data;
-				json_file.close();
-			} catch (std::exception& e) {
-				logger::info("	Unable to open {}:{}", file, e.what());
-			}
-			if (!json_data.empty()) {
-				for (auto& [esp, idmap] : json_data.items()) {
-					logger::info(" Found {} maps to {} with {} mappings", esp, merged, idmap.size());
-					mergeMap[esp]["name"] = merged;
-					mergeMap[esp]["map"] = idmap;
-				}
-			}
-			}
-	}
-	if (mergeMap.empty()) {
-		logger::info("	No merges were found within the Data folder");
-		return false;
-	}
-	logger::info("	{} merges found", mergeMap.size());
-	return true;
 }
 
 void Distribute::ApplyToNPCs()

@@ -2,9 +2,7 @@
 
 #include "Cache.h"
 #include "Defs.h"
-#include <nlohmann/json.hpp>
-
-static nlohmann::json mergeMap;
+#include "MergeMapper.h"
 
 namespace INI
 {
@@ -331,17 +329,11 @@ namespace Lookup
 			if (std::holds_alternative<FormIDPair>(formIDPair_ini)) {
 				if (auto [formID, modName] = std::get<FormIDPair>(formIDPair_ini); formID) {
 					if (modName) {
-						const auto oldName = modName.value_or("");
-						const auto oldFormID = std::to_string(*formID);
 						//check for merged esps
-						if (mergeMap.contains(oldName)) {
-							modName = mergeMap[oldName]["name"];
-							if (!mergeMap[oldName]["map"].empty()) {					
-								if (mergeMap[oldName]["map"].contains(oldFormID)) {
-									formID.emplace(std::stoi(mergeMap[oldName]["map"][oldFormID].get<std::string>()));
-								}
-							}
-						}
+						const auto processedFormPair = MergeMapper::GetNewFormID(modName.value_or(""), fmt::format("{:x}", formID.value_or(0)));
+						modName = processedFormPair.first;
+						formID.emplace(processedFormPair.second);
+
 						form = a_dataHandler->LookupForm<Form>(*formID, *modName);
 						if constexpr (std::is_same_v<Form, RE::TESBoundObject>) {
 							if (!form) {
@@ -440,7 +432,6 @@ namespace Lookup
 	}
 
 	bool GetForms();
-	bool GetMerges();
 }
 
 namespace Filter
