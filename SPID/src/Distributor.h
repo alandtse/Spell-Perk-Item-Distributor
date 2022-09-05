@@ -331,8 +331,8 @@ namespace Lookup
 					if (modName) {
 						//check for merged esps
 						if (g_mergeMapperInterface) {
-							const auto processedFormPair = g_mergeMapperInterface->GetNewFormID(modName.value_or("").c_str(), formID.value_or(0));
-							modName = processedFormPair.first;
+							const auto processedFormPair = g_mergeMapperInterface->GetNewFormID(modName.value().c_str(), formID.value_or(0));
+							modName.emplace(std::string(processedFormPair.first));
 							formID.emplace(processedFormPair.second);
 						}
 						form = a_dataHandler->LookupForm<Form>(*formID, *modName);
