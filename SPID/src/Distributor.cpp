@@ -123,7 +123,7 @@ void Distribute::ApplyToNPCs()
 			if (actorbase && !actorbase->IsPlayer()) {
 				for_each_form<RE::BGSKeyword>(*actorbase, keywords, [&](const auto& a_keywordsPair) {
 					const auto keyword = a_keywordsPair.first;
-					if (!actorbase->HasKeyword(keyword->formEditorID)) {
+					if (!actorbase->ContainsKeyword(keyword->formEditorID)) {
 						return actorbase->AddKeyword(keyword);
 					}
 					return false;

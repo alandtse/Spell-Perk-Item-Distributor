@@ -525,11 +525,11 @@ namespace Filter
 			{
 				if (a_matchesAll) {
 					return std::ranges::all_of(a_strings, [&a_actorbase](const auto& str) {
-						return a_actorbase.HasKeyword(str);
+						return a_actorbase.ContainsKeyword(str);
 					});
 				}
 				return std::ranges::any_of(a_strings, [&a_actorbase](const auto& str) {
-					return a_actorbase.HasKeyword(str);
+					return a_actorbase.ContainsKeyword(str);
 				});
 			}
 		}
