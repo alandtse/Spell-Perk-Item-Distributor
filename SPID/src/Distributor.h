@@ -2,7 +2,7 @@
 
 #include "Cache.h"
 #include "Defs.h"
-#include "MergeMapper.h"
+#include "MergeMapperPluginAPI.h"
 
 namespace INI
 {
@@ -330,10 +330,11 @@ namespace Lookup
 				if (auto [formID, modName] = std::get<FormIDPair>(formIDPair_ini); formID) {
 					if (modName) {
 						//check for merged esps
-						const auto processedFormPair = MergeMapper::GetNewFormID(modName.value_or(""), fmt::format("{:x}", formID.value_or(0)));
-						modName = processedFormPair.first;
-						formID.emplace(processedFormPair.second);
-
+						if (g_mergeMapperInterface) {
+							const auto processedFormPair = g_mergeMapperInterface->GetNewFormID(modName.value_or("").c_str(), formID.value_or(0));
+							modName = processedFormPair.first;
+							formID.emplace(processedFormPair.second);
+						}
 						form = a_dataHandler->LookupForm<Form>(*formID, *modName);
 						if constexpr (std::is_same_v<Form, RE::TESBoundObject>) {
 							if (!form) {

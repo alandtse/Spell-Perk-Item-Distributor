@@ -1,16 +1,28 @@
 #include "Distributor.h"
-#include "MergeMapper.h"
+#include "MergeMapperPluginAPI.h"
 void MessageHandler(SKSE::MessagingInterface::Message* a_message)
 {
+	if (a_message->type == SKSE::MessagingInterface::kPostPostLoad) {
+		logger::info("{:*^30}", "MERGES");
+		MergeMapperPluginAPI::GetMergeMapperInterface001();  // Request interface
+		if (g_mergeMapperInterface) {                        // Use Interface
+			const auto version = g_mergeMapperInterface->GetBuildNumber();
+			logger::info("Got MergeMapper interface buildnumber {}", version);
+		} else
+			logger::info("MergeMapper not detected");
+	}
 	if (a_message->type == SKSE::MessagingInterface::kDataLoaded) {
-		logger::info("{:*^30}", "LOOKUP");
+		const auto kidHandle = GetModuleHandle(L"po3_KeywordItemDistributor");
+		if (kidHandle == nullptr) {
+			logger::info("{:*^30}", "LOOKUP");
 
-		Cache::EditorID::GetSingleton()->FillMap();
+			Cache::EditorID::GetSingleton()->FillMap();
 
-		if (Lookup::GetForms()) {
-			Distribute::ApplyToNPCs();
-			Distribute::LeveledActor::Install();
-			Distribute::DeathItemManager::Register();
+			if (Lookup::GetForms()) {
+				Distribute::ApplyToNPCs();
+				Distribute::LeveledActor::Install();
+				Distribute::DeathItemManager::Register();
+			}
 		}
 	}
 }
@@ -109,9 +121,6 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 
 	SKSE::Init(a_skse);
 
-	logger::info("{:*^30}", "MERGES");
-	MergeMapper::GetMerges();
-
 	const auto kidHandle = GetModuleHandle(L"po3_KeywordItemDistributor");
 	logger::info("Keyword Item Distributor (KID) detected : {}", kidHandle != nullptr);
 
@@ -119,11 +128,10 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 		if (kidHandle != nullptr) {
 			auto modEvent = SKSE::GetModCallbackEventSource();
 			modEvent->AddEventSink(DistributionManager::GetSingleton());
-		} else {
-			auto messaging = SKSE::GetMessagingInterface();
-			messaging->RegisterListener(MessageHandler);
 		}
 	}
+	auto messaging = SKSE::GetMessagingInterface();
+	messaging->RegisterListener(MessageHandler);
 
 	return true;
 }
